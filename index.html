@@ -1,1 +1,1153 @@
-<p id="creator-credit" style="position:fixed;z-index:10;bottom:5px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 20px);margin:0;padding:5px 10px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(8,19,30,.9);color:#d5e4df;text-align:center;font-size:11px;font-weight:600;pointer-events:none">إعداد و تصميم المعلم عامر كراجه</p>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08131e">
+  <meta name="description" content="مغامرة ثلاثية الأبعاد لتعلّم مهارات صيانة الحاسوب لطلاب الصف الثامن.">
+  <title>جزيرة الصيانة | مغامرة المهارات الرقمية</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f8f2;
+      --muted: #a9bac0;
+      --panel: rgba(8, 19, 30, .88);
+      --line: rgba(255, 255, 255, .14);
+      --mint: #8ce5b1;
+      --gold: #ffd078;
+      --coral: #ff9d80;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background: #08131e;
+      overflow: hidden;
+    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 3px;
+    }
+    #world {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .veil {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(5, 14, 23, .66), transparent 26%, transparent 64%, rgba(5, 14, 23, .64));
+    }
+    .topbar, .bottom-bar, .zone-nav, .intro-card, .modal {
+      position: relative;
+      z-index: 2;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px clamp(14px, 3vw, 38px);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid rgba(140, 229, 177, .45);
+      border-radius: 14px;
+      background: rgba(140, 229, 177, .12);
+      font-size: 21px;
+    }
+    .brand h1 { margin: 0; font-size: clamp(16px, 2.2vw, 21px); }
+    .brand p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .pill, .quiet-button, .zone-button, .primary-button, .secondary-button, .answer-button, .mobile-pad button {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(8, 19, 30, .74);
+    }
+    .pill { padding: 9px 13px; color: var(--muted); font-size: 13px; }
+    .quiet-button, .secondary-button {
+      padding: 10px 13px;
+      cursor: pointer;
+      transition: background .18s, transform .18s;
+    }
+    .quiet-button:hover, .secondary-button:hover { background: rgba(255, 255, 255, .12); }
+    .quiet-button:active, .primary-button:active, .zone-button:active { transform: translateY(1px); }
+    .hud {
+      position: absolute;
+      z-index: 2;
+      top: 86px;
+      right: clamp(14px, 3vw, 38px);
+      width: min(265px, calc(100vw - 28px));
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 15px 42px rgba(0, 0, 0, .2);
+      backdrop-filter: blur(14px);
+    }
+    .hud-name { margin: 0; font-size: 15px; }
+    .hud-caption { margin: 5px 0 13px; color: var(--muted); font-size: 12px; }
+    .progress-line { display: flex; justify-content: space-between; margin-bottom: 7px; color: #d7e1dd; font-size: 12px; }
+    .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .12); }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint), #d7f39c); transition: width .3s; }
+    .badge-row { display: flex; gap: 7px; margin-top: 13px; }
+    .badge {
+      flex: 1;
+      padding: 7px 5px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 11px;
+    }
+    .badge.done { color: var(--mint); border-color: rgba(140, 229, 177, .45); background: rgba(140, 229, 177, .09); }
+    .zone-nav {
+      position: absolute;
+      z-index: 2;
+      left: clamp(14px, 3vw, 38px);
+      bottom: 94px;
+      display: grid;
+      gap: 8px;
+      width: min(232px, calc(100vw - 28px));
+    }
+    .zone-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      color: #e9f1eb;
+      text-align: right;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+    }
+    .zone-button:hover { border-color: rgba(255, 255, 255, .4); background: rgba(8, 19, 30, .9); }
+    .zone-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; }
+    .zone-label { font-size: 12px; }
+    .zone-status { margin-right: auto; color: var(--muted); font-size: 11px; }
+    .bottom-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 84px;
+      padding: 9px 16px calc(9px + env(safe-area-inset-bottom));
+      background: linear-gradient(0deg, rgba(5, 14, 23, .86), transparent);
+    }
+    #creator-credit {
+      position: fixed;
+      z-index: 10;
+      bottom: calc(5px + env(safe-area-inset-bottom));
+      left: 50%;
+      width: max-content;
+      max-width: calc(100% - 20px);
+      margin: 0;
+      padding: 5px 10px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 10px;
+      background: rgba(8, 19, 30, .9);
+      color: #d5e4df;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #e7eeea;
+      text-align: center;
+      font-size: 13px;
+      text-shadow: 0 2px 10px #07111b;
+    }
+    .creator-credit {
+      margin: 0;
+      color: #d5e4df;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .01em;
+    }
+    .key {
+      display: inline-grid;
+      min-width: 25px;
+      height: 25px;
+      place-items: center;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(8, 19, 30, .72);
+      color: var(--mint);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .action-button { display: none; margin-inline-start: 5px; }
+    .mobile-pad {
+      position: absolute;
+      z-index: 2;
+      bottom: calc(82px + env(safe-area-inset-bottom));
+      right: 18px;
+      display: none;
+      grid-template: repeat(2, 44px) / repeat(3, 44px);
+      gap: 5px;
+      direction: ltr;
+      touch-action: none;
+    }
+    .mobile-pad button { cursor: pointer; background: rgba(8, 19, 30, .72); font-size: 17px; touch-action: none; }
+    .mobile-pad button:active { background: rgba(140, 229, 177, .3); }
+    .mobile-pad .up { grid-column: 2; }
+    .mobile-pad .left { grid-column: 1; grid-row: 2; }
+    .mobile-pad .down { grid-column: 2; grid-row: 2; }
+    .mobile-pad .right { grid-column: 3; grid-row: 2; }
+    .intro-screen, .modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(4, 12, 20, .66);
+      backdrop-filter: blur(8px);
+    }
+    .intro-screen { z-index: 5; }
+    .modal { z-index: 6; }
+    [hidden] { display: none !important; }
+    .intro-card, .dialog-card {
+      width: min(500px, 100%);
+      padding: clamp(22px, 5vw, 36px);
+      border: 1px solid rgba(255, 255, 255, .17);
+      border-radius: 25px;
+      background: linear-gradient(155deg, rgba(18, 38, 48, .98), rgba(8, 19, 30, .98));
+      box-shadow: 0 28px 90px rgba(0, 0, 0, .42);
+    }
+    .intro-card { text-align: center; }
+    .eyebrow { color: var(--mint); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+    .intro-card h2 { margin: 10px 0 8px; font-size: clamp(25px, 6vw, 36px); }
+    .intro-card > p, .dialog-copy { color: var(--muted); line-height: 1.8; font-size: 14px; }
+    .form-fields { display: grid; gap: 13px; margin: 24px 0 16px; text-align: right; }
+    .form-fields label { display: grid; gap: 7px; color: #e5eeea; font-size: 13px; }
+    .form-fields input, .form-fields select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .06);
+      color: var(--ink);
+    }
+    .form-fields select option { color: #14222a; }
+    .primary-button {
+      width: 100%;
+      padding: 14px 18px;
+      border-color: rgba(140, 229, 177, .56);
+      background: linear-gradient(110deg, #287c63, #285c61);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter .18s, transform .18s;
+    }
+    .primary-button:hover { filter: brightness(1.15); }
+    .field-error { min-height: 18px; margin: 10px 0 0; color: var(--coral); font-size: 12px; }
+    .dialog-card { max-height: min(86vh, 780px); overflow: auto; }
+    .dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .dialog-heading h2 { margin: 0 0 7px; font-size: clamp(20px, 5vw, 26px); }
+    .dialog-heading .eyebrow { margin: 0 0 7px; }
+    .close-button {
+      flex: none;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .06);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .question-count { margin: 12px 0; color: var(--muted); font-size: 12px; }
+    .scenario {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .045);
+      line-height: 1.9;
+      font-size: 15px;
+    }
+    .answers { display: grid; gap: 9px; margin: 16px 0; }
+    .answer-button { padding: 12px 14px; text-align: right; line-height: 1.7; cursor: pointer; }
+    .answer-button:hover:not(:disabled) { border-color: rgba(140, 229, 177, .62); background: rgba(140, 229, 177, .09); }
+    .answer-button:disabled { cursor: default; opacity: .65; }
+    .answer-button.correct { border-color: rgba(140, 229, 177, .7); background: rgba(140, 229, 177, .12); opacity: 1; }
+    .answer-button.wrong { border-color: rgba(255, 157, 128, .65); background: rgba(255, 157, 128, .09); opacity: 1; }
+    .feedback {
+      min-height: 24px;
+      margin: 6px 0 14px;
+      color: var(--mint);
+      line-height: 1.75;
+      font-size: 13px;
+    }
+    .feedback.wrong { color: var(--gold); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .dialog-actions .primary-button { width: auto; min-width: 145px; }
+    .certificate {
+      position: relative;
+      padding: 30px 23px;
+      border: 5px double #ad8643;
+      border-radius: 8px;
+      background: #fffdf4;
+      color: #263b45;
+      text-align: center;
+    }
+    .certificate .school { color: #526d71; font-size: 13px; }
+    .certificate h2 { margin: 20px 0 7px; color: #215b56; font-size: clamp(23px, 6vw, 34px); }
+    .certificate p { line-height: 1.8; }
+    .certificate-name { margin: 18px 0 7px; color: #9c7136; font-size: clamp(21px, 5vw, 29px); font-weight: 800; }
+    .certificate-score { color: #236552; font-weight: 700; }
+    .certificate-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 28px; padding-top: 14px; border-top: 1px solid #ddd3b5; color: #40565c; text-align: right; font-size: 12px; }
+    .report-wrap { overflow-x: auto; margin-top: 15px; }
+    .report-table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+    .report-table th, .report-table td { padding: 11px 9px; border-bottom: 1px solid var(--line); text-align: right; }
+    .report-table th { color: var(--mint); }
+    .report-table .empty { padding: 22px 10px; color: var(--muted); text-align: center; }
+    .report-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+    .report-note { margin-top: 13px; color: var(--muted); line-height: 1.7; font-size: 11px; }
+    .toast {
+      position: fixed;
+      z-index: 8;
+      top: 75px;
+      left: 50%;
+      max-width: calc(100vw - 28px);
+      padding: 12px 17px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(140, 229, 177, .4);
+      border-radius: 12px;
+      background: rgba(8, 19, 30, .95);
+      color: #eef7ef;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+      text-align: center;
+      font-size: 13px;
+    }
+    .loading {
+      position: fixed;
+      z-index: 4;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #eaf3ee;
+      background: #08131e;
+      font-size: 15px;
+    }
+    @media (max-width: 650px) {
+      .topbar { align-items: flex-start; padding-top: 12px; }
+      .brand p { max-width: 190px; line-height: 1.5; }
+      .brand-icon { width: 38px; height: 38px; }
+      .top-actions { flex-direction: column; align-items: flex-end; }
+      .top-actions .pill { padding: 7px 9px; font-size: 11px; }
+      .quiet-button { padding: 8px 9px; font-size: 11px; }
+      .hud { top: 106px; width: 192px; padding: 12px; }
+      .zone-nav { bottom: calc(91px + env(safe-area-inset-bottom)); width: 184px; gap: 6px; }
+      .zone-button { padding: 8px 9px; gap: 7px; }
+      .zone-label { font-size: 11px; }
+      .zone-status { font-size: 10px; }
+      .mobile-pad { display: grid; }
+      .hint { max-width: 56%; margin-left: auto; font-size: 11px; line-height: 1.7; }
+      .hint .desktop-controls { display: none; }
+      .action-button { display: inline-block; padding: 7px 10px; border: 1px solid rgba(140, 229, 177, .4); border-radius: 9px; background: rgba(8, 19, 30, .84); color: var(--mint); }
+      #creator-credit { font-size: 10px; }
+    }
+    @media (max-width: 390px) {
+      .hud { width: 170px; }
+      .badge { font-size: 10px; }
+      .zone-nav { width: 166px; }
+      .zone-label { font-size: 10px; }
+    }
+    @media print {
+      :root { color-scheme: light; }
+      body { overflow: visible; background: #fff; color: #17252b; }
+      #world, .veil, .topbar, .hud, .zone-nav, .bottom-bar, .mobile-pad, .intro-screen, #challenge-modal, #report-modal, #toast, #loading { display: none !important; }
+      #certificate-modal { position: static !important; display: block !important; padding: 0 !important; background: #fff !important; }
+      #certificate-modal .dialog-card { width: 100%; max-height: none; padding: 0; overflow: visible; border: 0; background: #fff; box-shadow: none; }
+      #certificate-modal .dialog-heading, #certificate-modal .dialog-copy, #certificate-modal .dialog-actions { display: none !important; }
+      .certificate { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; border-width: 8px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      #creator-credit { position: static; width: auto; max-width: none; margin: 0 auto; transform: none; border: 0; background: transparent; color: #40565c; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      #certificate-modal:not([hidden]) ~ * { display: none !important; }
+      @page { size: landscape; margin: 12mm; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="world" aria-label="عالم لعبة جزيرة الصيانة ثلاثية الأبعاد"></canvas>
+  <div class="veil" aria-hidden="true"></div>
+  <div id="loading" class="loading">جارٍ تجهيز الجزيرة...</div>
+  <p id="creator-credit">إعداد و تصميم المعلم عامر كراجه</p>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">🧰</div>
+      <div>
+        <h1>جزيرة الصيانة</h1>
+        <p>مغامرة المهارات الرقمية · الصف الثامن</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="header-player" class="pill">مستكشف جديد</span>
+      <button id="teacher-open" class="quiet-button" type="button">📋 سجل المعلم</button>
+    </div>
+  </header>
+
+  <aside id="hud" class="hud" hidden aria-live="polite">
+    <h2 id="hud-name" class="hud-name"></h2>
+    <p id="hud-caption" class="hud-caption">مغامر صيانة الحاسوب</p>
+    <div class="progress-line"><span>إنجاز المغامرة</span><span id="progress-text">٠٪</span></div>
+    <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+    <div class="badge-row">
+      <div id="badge-hardware" class="badge">🖥️ العتاد</div>
+      <div id="badge-maintenance" class="badge">🛠️ الصيانة</div>
+      <div id="badge-software" class="badge">💿 النظام</div>
+    </div>
+  </aside>
+
+  <nav id="zone-nav" class="zone-nav" aria-label="محطات الجزيرة" hidden>
+    <button class="zone-button" type="button" data-station="maintenance">
+      <span class="zone-dot" style="background:#f4bd65"></span><span class="zone-label">واحة خطط الصيانة</span><span class="zone-status">ابدأ</span>
+    </button>
+    <button class="zone-button" type="button" data-station="hardware">
+      <span class="zone-dot" style="background:#78d4cf"></span><span class="zone-label">ورشة العتاد</span><span class="zone-status">ابدأ</span>
+    </button>
+    <button class="zone-button" type="button" data-station="software">
+      <span class="zone-dot" style="background:#bd9af2"></span><span class="zone-label">مركز النظام</span><span class="zone-status">ابدأ</span>
+    </button>
+    <button class="zone-button" type="button" data-station="final">
+      <span class="zone-dot" style="background:#f28f83"></span><span class="zone-label">منصة التحدي الختامي</span><span class="zone-status">مغلقة</span>
+    </button>
+  </nav>
+
+  <div id="mobile-pad" class="mobile-pad" aria-label="أزرار الحركة">
+    <button class="up" type="button" data-move="forward" aria-label="إلى الأمام">▲</button>
+    <button class="left" type="button" data-move="left" aria-label="يسار">◀</button>
+    <button class="down" type="button" data-move="back" aria-label="إلى الخلف">▼</button>
+    <button class="right" type="button" data-move="right" aria-label="يمين">▶</button>
+  </div>
+
+  <footer class="bottom-bar">
+    <div class="hint">
+      <span id="game-hint">استكشف الجزيرة، واقترب من محطة لبدء مهمتها.</span>
+      <span class="desktop-controls">تحرّك بـ <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></span>
+      <button id="nearby-action" class="action-button" type="button" hidden>ابدأ المهمة</button>
+    </div>
+  </footer>
+
+  <section id="intro-screen" class="intro-screen" aria-labelledby="intro-title">
+    <div class="intro-card">
+      <div class="eyebrow">ذكور وادي السير · الأونروا</div>
+      <h2 id="intro-title">مغامرة صيانة الحواسيب</h2>
+      <p>جهّز عدّتك وانطلق لاستكشاف الجزيرة. أكمل محطات العتاد والصيانة والنظام، ثم اختبر مهاراتك في التحدي الختامي!</p>
+      <form id="start-form" class="form-fields">
+        <label>اسم الطالب
+          <input id="student-name" name="student-name" type="text" autocomplete="name" maxlength="70" placeholder="اكتب اسمك الثلاثي" required>
+        </label>
+        <label>الشعبة الصفية
+          <select id="student-section" name="student-section">
+            <option>الثامن أ</option><option>الثامن ب</option><option>الثامن ج</option><option>الثامن د</option>
+          </select>
+        </label>
+        <button class="primary-button" type="submit">يلا نفوت عالتحدي ونصير أبطال الصيانة! 🚀</button>
+      </form>
+      <p id="start-error" class="field-error" role="alert"></p>
+    </div>
+  </section>
+
+  <section id="challenge-modal" class="modal" hidden aria-labelledby="challenge-title">
+    <div class="dialog-card" role="dialog" aria-modal="true">
+      <div class="dialog-heading">
+        <div><p id="challenge-eyebrow" class="eyebrow"></p><h2 id="challenge-title"></h2></div>
+        <button class="close-button" type="button" data-close="challenge-modal" aria-label="إغلاق">✕</button>
+      </div>
+      <p id="question-count" class="question-count"></p>
+      <p id="scenario" class="scenario"></p>
+      <div id="answers" class="answers"></div>
+      <p id="feedback" class="feedback" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="next-question" class="primary-button" type="button" hidden>السؤال التالي ←</button></div>
+    </div>
+  </section>
+
+  <section id="certificate-modal" class="modal" hidden aria-labelledby="certificate-title">
+    <div class="dialog-card" role="dialog" aria-modal="true">
+      <div class="dialog-heading"><div><p class="eyebrow">أحسنت يا بطل!</p><h2 id="certificate-title">إنجازك في جزيرة الصيانة</h2></div><button class="close-button" type="button" data-close="certificate-modal" aria-label="إغلاق">✕</button></div>
+      <p id="certificate-message" class="dialog-copy"></p>
+      <article id="certificate" class="certificate">
+        <div class="school">المملكة الأردنية الهاشمية · ذكور وادي السير - الأونروا</div>
+        <h2>شهادة إنجاز</h2>
+        <p>تُمنح بكل فخر للطالب / للطالبة</p>
+        <div id="certificate-name" class="certificate-name"></div>
+        <p id="certificate-section"></p>
+        <p>لاجتيازه / لاجتيازها تحديات مغامرة صيانة الحواسيب ومهارات العتاد والصيانة ونظام التشغيل.</p>
+        <p id="certificate-score" class="certificate-score"></p>
+        <div class="certificate-footer"><span>مدرسة ذكور وادي السير - الأونروا</span><span>إعداد و تصميم المعلم عامر كراجه</span></div>
+      </article>
+      <div class="dialog-actions" style="margin-top:14px">
+        <button id="print-certificate" class="primary-button" type="button">🖨️ طباعة / حفظ PDF</button>
+        <button id="close-certificate" class="secondary-button" type="button">إلى الجزيرة</button>
+        <button id="restart-game" class="secondary-button" type="button">مغامرة جديدة</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="report-modal" class="modal" hidden aria-labelledby="report-title">
+    <div class="dialog-card" role="dialog" aria-modal="true">
+      <div class="dialog-heading"><div><p class="eyebrow">عامر كراجه · ذكور وادي السير</p><h2 id="report-title">سجل أداء الطلبة</h2></div><button class="close-button" type="button" data-close="report-modal" aria-label="إغلاق">✕</button></div>
+      <p id="report-summary" class="dialog-copy"></p>
+      <div class="report-wrap">
+        <table class="report-table">
+          <thead><tr><th>اسم الطالب</th><th>الشعبة</th><th>النتيجة</th><th>المهارات</th><th>التاريخ</th></tr></thead>
+          <tbody id="report-body"></tbody>
+        </table>
+      </div>
+      <div class="report-actions">
+        <button id="print-report" class="primary-button" type="button" style="width:auto">🖨️ طباعة التقرير</button>
+        <button id="export-report" class="secondary-button" type="button">تنزيل CSV</button>
+        <button id="clear-report" class="secondary-button" type="button">مسح هذا السجل</button>
+      </div>
+      <p class="report-note">السجل يُحفظ محلياً في هذا المتصفح فقط؛ لا يُرسل إلى خادم ولا يتزامن تلقائياً مع أجهزة أخرى. تنزيل نسخة CSV للاحتفاظ بها. لا يُعد هذا التقرير خاصاً أو محمياً بكلمة مرور.</p>
+    </div>
+  </section>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      const SAVE_KEY = "grade8-repair-island-records-v1";
+      const PASS_MARK = 70;
+      const stations = {
+        maintenance: { title: "واحة خطط الصيانة", color: 0xf4bd65, position: [-8, 0, 2], badge: "maintenance" },
+        hardware: { title: "ورشة العتاد", color: 0x78d4cf, position: [7, 0, 1], badge: "hardware" },
+        software: { title: "مركز النظام", color: 0xbd9af2, position: [0, 0, -9], badge: "software" }
+      };
+      const quests = {
+        maintenance: [
+          { scenario: "يضع فني المختبر جدولاً لتنظيف فتحات التهوية وفحص الأسلاك قبل ظهور أي مشكلة. ما نوع الصيانة؟", options: ["صيانة وقائية", "صيانة علاجية", "صيانة تكيفية"], answer: 0, feedback: "كفو يا وحش! الصيانة الوقائية تتم وفق خطة لتقليل احتمال الأعطال قبل حدوثها." },
+          { scenario: "يراقب نظامٌ مؤشرات حرارة القرص وأداءه ليقدّر متى قد يقع عطل. أي نوع من الصيانة يعتمد على متابعة المؤشرات؟", options: ["صيانة تنبؤية", "صيانة علاجية", "صيانة عشوائية"], answer: 0, feedback: "صحيح! الصيانة التنبؤية تستفيد من المراقبة والبيانات لتوقّع الحاجة إلى الصيانة." },
+          { scenario: "تعطّل جهاز فعلاً، ففحصه الفني وحدّد السبب ثم أصلح الجزء المتضرر. ما نوع الصيانة؟", options: ["صيانة علاجية", "صيانة وقائية", "صيانة تنبؤية"], answer: 0, feedback: "عاش يا بطل! الصيانة العلاجية تعالج العطل بعد وقوعه." },
+          { scenario: "نُعدّل إعدادات برنامج أو جهاز ليتوافق مع تغيير جديد في بيئة العمل. ما نوع الصيانة الأقرب؟", options: ["صيانة تكيفية", "صيانة علاجية", "صيانة وقائية"], answer: 0, feedback: "ممتاز! الصيانة التكيفية تساعد النظام على مواكبة التغيّرات في بيئته." }
+        ],
+        hardware: [
+          { scenario: "الشاشة سوداء ومؤشر تشغيلها مطفأ. ما أول فحص بسيط وآمن قبل التفكير في استبدالها؟", options: ["التأكد من توصيل كابل الطاقة ومصدر الكهرباء", "فتح الشاشة من الداخل فوراً", "حذف ملفات الجهاز"], answer: 0, feedback: "صحيح! ابدأ بالفحص الأساسي للتوصيلات والطاقة قبل استبدال القطع." },
+          { scenario: "قبل فتح صندوق الحاسوب المكتبي لتنظيفه، ما الإجراء الأهم للسلامة؟", options: ["إيقاف التشغيل وفصل مصدر الكهرباء", "رشّ المنظف داخل الجهاز وهو يعمل", "لمس اللوحة الأم للتأكد من حرارتها"], answer: 0, feedback: "أحسنت! افصل الطاقة أولاً، واتبع تعليمات السلامة قبل التعامل مع المكونات." },
+          { scenario: "أي قطعة تحتفظ مؤقتاً بالبيانات والبرامج التي يستخدمها الحاسوب أثناء عمله؟", options: ["ذاكرة الوصول العشوائي RAM", "الشاشة", "الفأرة"], answer: 0, feedback: "تمام! تستخدم RAM لتخزين البيانات مؤقتاً أثناء تشغيل البرامج." },
+          { scenario: "يريد فني تقليل خطر الكهرباء الساكنة قبل لمس المكوّنات الداخلية. ما الأداة المناسبة؟", options: ["سوار تفريغ الشحنات الساكنة ESD", "قطعة قماش مبللة", "مفك غير معزول"], answer: 0, feedback: "ممتاز! سوار ESD يساعد على تفريغ الشحنات الساكنة بأمان." }
+        ],
+        software: [
+          { scenario: "توقف برنامج عن الاستجابة لكن بقية الحاسوب ما زالت تعمل. ما الأداة المناسبة لإنهاء البرنامج؟", options: ["إدارة المهام Task Manager", "تغيير دقة الشاشة", "تنظيف لوحة المفاتيح"], answer: 0, feedback: "صحيح! استخدم إدارة المهام لتحديد التطبيق المتوقف وإنهاء مهمته." },
+          { scenario: "أصبح الحاسوب بطيئاً عند بدء التشغيل. ما خطوة الفحص المنطقية؟", options: ["مراجعة تطبيقات بدء التشغيل وإيقاف غير الضروري منها", "فصل الشاشة أثناء التشغيل", "حذف نظام التشغيل"], answer: 0, feedback: "رائع! مراجعة تطبيقات بدء التشغيل قد تقلل الحمل عند تشغيل الجهاز." },
+          { scenario: "ظهرت مشكلة بعد تثبيت برنامج، وتريد إعادة إعدادات النظام إلى حالة سابقة. ما الأداة المناسبة؟", options: ["استعادة النظام", "إدارة الملفات", "تغيير خلفية الشاشة"], answer: 0, feedback: "أحسنت! يمكن لاستعادة النظام الرجوع إلى نقطة استعادة سابقة عند توفرها." },
+          { scenario: "ما التصرف الآمن عند ظهور شاشة زرقاء أو رسالة خطأ للنظام؟", options: ["تسجيل رمز الخطأ واتباع خطوات التشخيص الموثوقة", "فتح صندوق الطاقة أثناء التشغيل", "تجاهل الرسالة وتكرار فصل الكهرباء"], answer: 0, feedback: "تمام! دوّن رسالة الخطأ واتبع التشخيص خطوة خطوة، ولا تتخذ إجراءً عشوائياً." }
+        ]
+      };
+      const finalQuiz = [
+        { scenario: "لماذا ننظّف فتحات التهوية دورياً؟", options: ["للمساعدة على تدفق الهواء والحد من ارتفاع الحرارة", "لزيادة سعة القرص", "لتغيير نوع المعالج"], answer: 0 },
+        { scenario: "أي مكوّن يعالج التعليمات والعمليات في الحاسوب؟", options: ["المعالج CPU", "الفأرة", "السماعة"], answer: 0 },
+        { scenario: "ما الفرق العام بين الذاكرة RAM ووحدة التخزين SSD؟", options: ["RAM مؤقتة أثناء العمل، وSSD تخزين دائم للملفات", "كلتاهما شاشة عرض", "SSD تحفظ البيانات المؤقتة فقط أثناء فتح البرنامج"], answer: 0 },
+        { scenario: "ما التصرف الأفضل قبل تثبيت تحديث لنظام التشغيل؟", options: ["حفظ العمل واتباع تعليمات التحديث الموثوقة", "إطفاء الجهاز أثناء التحديث", "حذف ملفات النظام عشوائياً"], answer: 0 },
+        { scenario: "الفأرة لا تتحرك. ما أول خطوة تشخيصية مناسبة؟", options: ["فحص اتصالها أو بطاريتها وتجربتها على منفذ مناسب", "استبدال المعالج فوراً", "إعادة تثبيت كل البرامج"], answer: 0 },
+        { scenario: "لاحظت رائحة احتراق من جهاز يعمل. ماذا تفعل؟", options: ["إيقافه وفصل الكهرباء بأمان وإبلاغ المسؤول", "متابعة العمل حتى ينطفئ", "فتح مزوّد الطاقة"], answer: 0 }
+      ];
+
+      const el = (id) => document.getElementById(id);
+      const ui = {
+        intro: el("intro-screen"), hud: el("hud"), nav: el("zone-nav"), name: el("hud-name"),
+        caption: el("hud-caption"), headerPlayer: el("header-player"), progressText: el("progress-text"),
+        progressFill: el("progress-fill"), hint: el("game-hint"), action: el("nearby-action"),
+        challenge: el("challenge-modal"), challengeTitle: el("challenge-title"),
+        challengeEyebrow: el("challenge-eyebrow"), questionCount: el("question-count"),
+        scenario: el("scenario"), answers: el("answers"), feedback: el("feedback"),
+        certificate: el("certificate-modal"),
+        next: el("next-question"), report: el("report-modal"), reportBody: el("report-body"),
+        reportSummary: el("report-summary"), toast: el("toast")
+      };
+      const state = {
+        student: null, score: 0, answered: 0,
+        completed: new Set(), seen: new Set(), questionIndex: 0,
+        activeSet: null, activeKey: null, answeredCurrent: false,
+        skillScores: { maintenance: 0, hardware: 0, software: 0 },
+        skillTotals: { maintenance: 0, hardware: 0, software: 0 },
+        nearby: null, keys: new Set(), cameraYaw: 0, lastTime: 0, toastTimer: 0,
+        gameStarted: false, savedRecord: false
+      };
+      let scene, camera, renderer, player, playerShadow, clock;
+      const stationObjects = {};
+      const worldLimit = 15.7;
+
+      function showToast(message) {
+        ui.toast.textContent = message;
+        ui.toast.hidden = false;
+        window.clearTimeout(state.toastTimer);
+        state.toastTimer = window.setTimeout(() => { ui.toast.hidden = true; }, 3000);
+      }
+
+      function setProgress() {
+        const done = Object.keys(stations).filter((key) => state.completed.has(key)).length;
+        const percent = Math.round((state.completed.size / 4) * 100);
+        ui.progressText.textContent = `${percent.toLocaleString("ar")}٪`;
+        ui.progressFill.style.width = `${percent}%`;
+        Object.entries(stations).forEach(([key, station]) => {
+          const badge = el(`badge-${station.badge}`);
+          const status = document.querySelector(`[data-station="${key}"] .zone-status`);
+          const isDone = state.completed.has(key);
+          badge.classList.toggle("done", isDone);
+          if (status) status.textContent = isDone ? "✓ أُنجزت" : "ابدأ";
+        });
+        const finalStatus = document.querySelector('[data-station="final"] .zone-status');
+        if (finalStatus) finalStatus.textContent = state.completed.has("final") ? "✓ أُنجزت" : state.completed.size === 3 ? "متاح" : "مغلقة";
+      }
+
+      function makeScene() {
+        if (!window.THREE) throw new Error("تعذّر تحميل مكتبة العرض ثلاثي الأبعاد. تحقّق من اتصال الإنترنت ثم أعد تحميل الصفحة.");
+        const T = window.THREE;
+        scene = new T.Scene();
+        scene.background = new T.Color(0x9bd9d5);
+        scene.fog = new T.Fog(0x9bd9d5, 32, 75);
+        camera = new T.PerspectiveCamera(48, innerWidth / innerHeight, .1, 120);
+        camera.position.set(0, 7.8, 13);
+        renderer = new T.WebGLRenderer({ canvas: el("world"), antialias: true, powerPreference: "low-power" });
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.7));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.outputColorSpace = T.SRGBColorSpace;
+        renderer.toneMapping = T.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = T.PCFSoftShadowMap;
+
+        scene.add(new T.HemisphereLight(0xf3fff1, 0x59716d, 1.05));
+        const sun = new T.DirectionalLight(0xfff0ce, 1.35);
+        sun.position.set(-10, 20, 8);
+        sun.castShadow = true;
+        sun.shadow.mapSize.set(1024, 1024);
+        sun.shadow.camera.left = -24; sun.shadow.camera.right = 24;
+        sun.shadow.camera.top = 24; sun.shadow.camera.bottom = -24;
+        scene.add(sun);
+
+        const water = new T.Mesh(new T.PlaneGeometry(200, 200), new T.MeshStandardMaterial({ color: 0x398e9c, roughness: .88 }));
+        water.rotation.x = -Math.PI / 2; water.position.y = -.5; water.receiveShadow = true; scene.add(water);
+        const island = new T.Mesh(new T.CylinderGeometry(19.5, 22, 2.5, 64, 1), new T.MeshStandardMaterial({ color: 0x6aab80, roughness: 1 }));
+        island.position.y = -.25; island.receiveShadow = true; island.castShadow = true; scene.add(island);
+        const grass = new T.Mesh(new T.CylinderGeometry(19.1, 19.5, .2, 64), new T.MeshStandardMaterial({ color: 0x93c67c, roughness: 1 }));
+        grass.position.y = 1.0; grass.receiveShadow = true; scene.add(grass);
+
+        const pathMaterial = new T.MeshStandardMaterial({ color: 0xd8c898, roughness: 1 });
+        const pathPoints = [[-8, 2], [7, 1], [0, -9], [0, 0]];
+        pathPoints.forEach(([x, z]) => {
+          const path = new T.Mesh(new T.CylinderGeometry(.68, .68, .035, 16), pathMaterial);
+          path.position.set(x, 1.115, z); path.receiveShadow = true; scene.add(path);
+        });
+        for (let i = 0; i < 14; i++) {
+          const angle = (i / 14) * Math.PI * 2;
+          const rock = new T.Mesh(new T.DodecahedronGeometry(.8 + (i % 3) * .25, 0), new T.MeshStandardMaterial({ color: i % 2 ? 0x7a9b83 : 0x86aa91, roughness: 1 }));
+          rock.position.set(Math.sin(angle) * 18, 1.2, Math.cos(angle) * 18);
+          rock.scale.y = .65; rock.castShadow = true; scene.add(rock);
+        }
+        for (let i = 0; i < 28; i++) {
+          const angle = i * 2.4, radius = 3.8 + (i % 7) * 1.65;
+          const x = Math.sin(angle) * radius, z = Math.cos(angle) * radius;
+          if (Math.hypot(x + 8, z - 2) < 4.5 || Math.hypot(x - 7, z - 1) < 4.5 ||
+              Math.hypot(x, z + 9) < 4.5 || Math.hypot(x, z) < 5.2 || Math.hypot(x, z - 6) < 4.5) continue;
+          const trunk = new T.Mesh(new T.CylinderGeometry(.12, .17, .9, 6), new T.MeshStandardMaterial({ color: 0x795a43 }));
+          trunk.position.set(x, 1.48, z); trunk.castShadow = true; scene.add(trunk);
+          const crown = new T.Mesh(new T.IcosahedronGeometry(.68 + (i % 3) * .13, 1), new T.MeshStandardMaterial({ color: i % 2 ? 0x388d66 : 0x4b9c65, roughness: 1 }));
+          crown.position.set(x, 2.25, z); crown.castShadow = true; scene.add(crown);
+        }
+        Object.entries(stations).forEach(([key, station]) => addStation(key, station));
+        addFinalPlatform();
+        addWorkshopDetails();
+
+        player = new T.Group();
+        const body = new T.Mesh(new T.CapsuleGeometry(.38, .72, 4, 8), new T.MeshStandardMaterial({ color: 0x3b8f83, roughness: .72 }));
+        body.position.y = .88; body.castShadow = true; player.add(body);
+        const head = new T.Mesh(new T.SphereGeometry(.32, 12, 10), new T.MeshStandardMaterial({ color: 0xd9a67b, roughness: .86 }));
+        head.position.y = 1.67; head.castShadow = true; player.add(head);
+        const cap = new T.Mesh(new T.CylinderGeometry(.34, .33, .17, 12), new T.MeshStandardMaterial({ color: 0xe6ad55 }));
+        cap.position.y = 1.93; cap.castShadow = true; player.add(cap);
+        player.position.set(0, 1.1, 6); scene.add(player);
+        playerShadow = new T.Mesh(new T.CircleGeometry(.54, 18), new T.MeshBasicMaterial({ color: 0x10241f, transparent: true, opacity: .28 }));
+        playerShadow.rotation.x = -Math.PI / 2; playerShadow.position.y = 1.13; scene.add(playerShadow);
+        clock = new T.Clock();
+        addScenery();
+        window.addEventListener("resize", resize);
+        window.addEventListener("keydown", onKeyDown);
+        window.addEventListener("keyup", onKeyUp);
+        window.addEventListener("blur", () => state.keys.clear());
+        bindMobileControls();
+        animate();
+      }
+
+      function addStation(key, station) {
+        const T = window.THREE;
+        const group = new T.Group();
+        group.position.set(station.position[0], 1.13, station.position[2]);
+        group.userData.stationKey = key;
+        const base = new T.Mesh(new T.CylinderGeometry(2.2, 2.45, .24, 24), new T.MeshStandardMaterial({ color: station.color, roughness: .9 }));
+        base.position.y = .08; base.receiveShadow = true; base.castShadow = true; group.add(base);
+        const pole = new T.Mesh(new T.CylinderGeometry(.13, .19, 1.75, 8), new T.MeshStandardMaterial({ color: 0xefe5cc, roughness: .76 }));
+        pole.position.y = 1.0; pole.castShadow = true; group.add(pole);
+        const sign = new T.Mesh(new T.BoxGeometry(2.2, .86, .18), new T.MeshStandardMaterial({ color: station.color, roughness: .55 }));
+        sign.position.y = 2.0; sign.castShadow = true; group.add(sign);
+        const marker = new T.Mesh(new T.OctahedronGeometry(.36, 0), new T.MeshStandardMaterial({ color: 0xffffff, emissive: station.color, emissiveIntensity: .5, roughness: .35 }));
+        marker.position.set(0, 2.85, 0); group.add(marker);
+        const halo = new T.Mesh(new T.TorusGeometry(2.65, .055, 5, 48), new T.MeshBasicMaterial({ color: station.color, transparent: true, opacity: .55 }));
+        halo.rotation.x = Math.PI / 2; halo.position.y = .22; group.add(halo);
+        scene.add(group); stationObjects[key] = { group, marker };
+        const signText = makeLabel(station.title, station.color);
+        signText.position.set(station.position[0], 4.65, station.position[2]);
+        scene.add(signText);
+      }
+
+      function makeLabel(text, color) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512; canvas.height = 96;
+        const context = canvas.getContext("2d");
+        context.fillStyle = "rgba(8,19,30,.84)";
+        roundRect(context, 4, 4, 504, 88, 25); context.fill();
+        context.strokeStyle = `#${color.toString(16).padStart(6, "0")}`;
+        context.lineWidth = 5; roundRect(context, 4, 4, 504, 88, 25); context.stroke();
+        context.fillStyle = "#fff"; context.font = "bold 37px Tahoma, Arial"; context.textAlign = "center"; context.textBaseline = "middle";
+        context.direction = "rtl"; context.fillText(text, 256, 48, 470);
+        const texture = new window.THREE.CanvasTexture(canvas);
+        texture.colorSpace = window.THREE.SRGBColorSpace;
+        const sprite = new window.THREE.Sprite(new window.THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+        sprite.scale.set(5.1, .96, 1);
+        return sprite;
+      }
+
+      function roundRect(context, x, y, width, height, radius) {
+        context.beginPath(); context.moveTo(x + radius, y); context.lineTo(x + width - radius, y);
+        context.quadraticCurveTo(x + width, y, x + width, y + radius); context.lineTo(x + width, y + height - radius);
+        context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height); context.lineTo(x + radius, y + height);
+        context.quadraticCurveTo(x, y + height, x, y + height - radius); context.lineTo(x, y + radius);
+        context.quadraticCurveTo(x, y, x + radius, y); context.closePath();
+      }
+
+      function addWorkshopDetails() {
+        const T = window.THREE;
+        const addBox = (x, y, z, w, h, d, color) => {
+          const box = new T.Mesh(new T.BoxGeometry(w, h, d), new T.MeshStandardMaterial({ color, roughness: .83 }));
+          box.position.set(x, y, z); box.castShadow = true; box.receiveShadow = true; scene.add(box);
+        };
+        addBox(7, 1.35, -2.0, 1.5, .35, .8, 0x625b50);
+        addBox(7, 2.05, -2.0, .95, .92, .18, 0x444f54);
+        addBox(-8, 1.36, .2, 1.3, .28, .8, 0x876f4b);
+        addBox(-8, 1.9, .2, .52, .75, .13, 0xa7ded4);
+        addBox(0, 1.38, -10.8, 1.3, .3, .65, 0x5a586f);
+        addBox(0, 1.8, -10.8, .68, .58, .1, 0x7779a7);
+      }
+
+      function addFinalPlatform() {
+        const T = window.THREE;
+        const group = new T.Group();
+        group.position.set(0, 1.14, 0);
+        const base = new T.Mesh(new T.CylinderGeometry(2.45, 2.7, .3, 32), new T.MeshStandardMaterial({ color: 0x73565b, roughness: .8 }));
+        base.position.y = .12; base.castShadow = true; base.receiveShadow = true; group.add(base);
+        const ring = new T.Mesh(new T.TorusGeometry(2.85, .08, 7, 48), new T.MeshBasicMaterial({ color: 0xffa58d, transparent: true, opacity: .8 }));
+        ring.rotation.x = Math.PI / 2; ring.position.y = .27; group.add(ring);
+        const archMaterial = new T.MeshStandardMaterial({ color: 0xffa58d, emissive: 0x47221d, roughness: .48 });
+        [-1.25, 1.25].forEach((x) => {
+          const post = new T.Mesh(new T.BoxGeometry(.25, 2.35, .25), archMaterial);
+          post.position.set(x, 1.35, -.65); post.castShadow = true; group.add(post);
+        });
+        const lintel = new T.Mesh(new T.BoxGeometry(2.75, .27, .28), archMaterial);
+        lintel.position.set(0, 2.52, -.65); lintel.castShadow = true; group.add(lintel);
+        scene.add(group);
+        const label = makeLabel("منصة التحدي الختامي", 0xffa58d);
+        label.position.set(0, 4.8, 0); scene.add(label);
+      }
+
+      function addScenery() {
+        const T = window.THREE;
+        for (let i = 0; i < 8; i++) {
+          const cloud = new T.Group();
+          const x = (i % 4) * 13 - 20, z = Math.floor(i / 4) * 13 - 3;
+          for (let j = 0; j < 3; j++) {
+            const puff = new T.Mesh(new T.SphereGeometry(1.05 + j * .1, 10, 8), new T.MeshBasicMaterial({ color: 0xf5ffff, transparent: true, opacity: .53 }));
+            puff.position.set(j * 1.2, 12 + (j % 2) * .35, 0); cloud.add(puff);
+          }
+          cloud.position.set(x, 0, z); scene.add(cloud);
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), .04);
+        if (state.gameStarted && ui.challenge.hidden && ui.report.hidden && ui.intro.hidden && ui.certificate.hidden) movePlayer(dt);
+        Object.values(stationObjects).forEach(({ marker }, index) => {
+          marker.position.y = 2.85 + Math.sin(performance.now() * .0017 + index) * .14;
+          marker.rotation.y += dt * .55;
+        });
+        updateProximity();
+        renderer.render(scene, camera);
+      }
+
+      function movePlayer(dt) {
+        const forward = (state.keys.has("KeyW") || state.keys.has("ArrowUp") || state.keys.has("forward") ? 1 : 0) -
+          (state.keys.has("KeyS") || state.keys.has("ArrowDown") || state.keys.has("back") ? 1 : 0);
+        const sideways = (state.keys.has("KeyD") || state.keys.has("ArrowRight") || state.keys.has("right") ? 1 : 0) -
+          (state.keys.has("KeyA") || state.keys.has("ArrowLeft") || state.keys.has("left") ? 1 : 0);
+        if (forward || sideways) {
+          const length = Math.hypot(forward, sideways);
+          const fx = Math.sin(state.cameraYaw), fz = Math.cos(state.cameraYaw);
+          const rx = Math.cos(state.cameraYaw), rz = -Math.sin(state.cameraYaw);
+          const dx = (fx * forward + rx * sideways) / length;
+          const dz = (fz * forward + rz * sideways) / length;
+          player.position.x += dx * dt * 5.1;
+          player.position.z += dz * dt * 5.1;
+          player.rotation.y = Math.atan2(dx, dz);
+          player.children[0].position.y = .88 + Math.sin(performance.now() * .012) * .04;
+        } else player.children[0].position.y = .88;
+        const radius = Math.hypot(player.position.x, player.position.z);
+        if (radius > worldLimit) {
+          player.position.x *= worldLimit / radius;
+          player.position.z *= worldLimit / radius;
+        }
+        playerShadow.position.set(player.position.x, 1.135, player.position.z);
+        const offset = new window.THREE.Vector3(0, 6.5, 10.5).applyAxisAngle(new window.THREE.Vector3(0, 1, 0), state.cameraYaw);
+        const desired = player.position.clone().add(offset);
+        camera.position.lerp(desired, .09);
+        camera.lookAt(player.position.x, 1.15, player.position.z);
+      }
+
+      function updateProximity() {
+        if (!state.gameStarted || !ui.intro.hidden || !ui.challenge.hidden || !ui.report.hidden || !ui.certificate.hidden) return;
+        let nearest = null, nearestDistance = Infinity;
+        Object.entries(stations).forEach(([key, station]) => {
+          if (state.completed.has(key)) return;
+          const distance = Math.hypot(player.position.x - station.position[0], player.position.z - station.position[2]);
+          if (distance < nearestDistance) { nearest = key; nearestDistance = distance; }
+        });
+        if (nearest && nearestDistance < 3.3) {
+          state.nearby = nearest;
+          ui.action.hidden = false;
+          ui.hint.textContent = `اقتربت من ${stations[nearest].title}. جاهز للمهمة؟`;
+          ui.action.textContent = "ابدأ المهمة";
+        } else if (state.completed.size === 3 && !state.completed.has("final")) {
+          const distance = Math.hypot(player.position.x, player.position.z);
+          if (distance < 5.5) {
+            state.nearby = "final"; ui.action.hidden = false;
+            ui.hint.textContent = "أنجزت المحطات! اقتربت من منصة التحدي الختامي.";
+            ui.action.textContent = "ابدأ التحدي";
+            return;
+          }
+          state.nearby = null; ui.action.hidden = true;
+          ui.hint.textContent = "اكتملت المحطات! توجّه إلى منصة التحدي الختامي.";
+          return;
+        } else {
+          state.nearby = null; ui.action.hidden = true;
+          ui.hint.textContent = "استكشف الجزيرة، واقترب من محطة لبدء مهمتها.";
+        }
+      }
+
+      function onKeyDown(event) {
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) event.preventDefault();
+        if (event.code === "KeyE" || event.key === " ") { if (!ui.action.hidden) beginNearby(); return; }
+        if (event.code === "KeyQ") state.cameraYaw -= .14;
+        if (event.code === "KeyE" && ui.action.hidden) state.cameraYaw += .14;
+        state.keys.add(event.code);
+      }
+      function onKeyUp(event) { state.keys.delete(event.code); }
+      function bindMobileControls() {
+        document.querySelectorAll("[data-move]").forEach((button) => {
+          const direction = button.dataset.move;
+          const release = (event) => { event.preventDefault(); state.keys.delete(direction); };
+          button.addEventListener("pointerdown", (event) => { event.preventDefault(); state.keys.add(direction); button.setPointerCapture(event.pointerId); });
+          button.addEventListener("pointerup", release);
+          button.addEventListener("pointercancel", release);
+          button.addEventListener("lostpointercapture", release);
+        });
+      }
+      function resize() {
+        if (!camera || !renderer) return;
+        camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.7));
+        renderer.setSize(innerWidth, innerHeight);
+      }
+
+      function startGame(event) {
+        event.preventDefault();
+        const name = el("student-name").value.trim().replace(/\s+/g, " ");
+        if (name.length < 3) { el("start-error").textContent = "اكتب اسمك الثلاثي أو أكثر قبل الانطلاق."; el("student-name").focus(); return; }
+        state.student = { name, section: el("student-section").value };
+        state.gameStarted = true;
+        ui.name.textContent = name;
+        ui.headerPlayer.textContent = `${name} · ${state.student.section}`;
+        ui.intro.hidden = true; ui.hud.hidden = false; ui.nav.hidden = false;
+        setProgress();
+        showToast("يلا يا بطل! تحرّك نحو إحدى المحطات وابدأ الاستكشاف 🌴");
+      }
+
+      function beginNearby() {
+        if (!state.nearby) return;
+        if (state.nearby === "final") { openQuestions("final", "التحدي الختامي", finalQuiz); return; }
+        openQuestions(state.nearby, stations[state.nearby].title, quests[state.nearby]);
+      }
+
+      function openQuestions(key, title, questions) {
+        state.activeKey = key;
+        state.activeSet = questions;
+        state.questionIndex = 0;
+        state.answeredCurrent = false;
+        ui.challengeTitle.textContent = title;
+        ui.challengeEyebrow.textContent = key === "final" ? "الاختبار الشامل" : "مهمة جديدة · اختر الإجابة الأنسب";
+        ui.challenge.hidden = false;
+        state.keys.clear();
+        renderQuestion();
+      }
+
+      function renderQuestion() {
+        const question = state.activeSet[state.questionIndex];
+        ui.questionCount.textContent = `السؤال ${state.questionIndex + 1} من ${state.activeSet.length}`;
+        ui.scenario.textContent = question.scenario;
+        ui.answers.replaceChildren();
+        ui.feedback.textContent = "";
+        ui.feedback.classList.remove("wrong");
+        ui.next.hidden = true;
+        state.answeredCurrent = false;
+        question.options.forEach((answer, index) => {
+          const button = document.createElement("button");
+          button.type = "button"; button.className = "answer-button"; button.textContent = answer;
+          button.addEventListener("click", () => selectAnswer(index, button));
+          ui.answers.append(button);
+        });
+      }
+
+      function selectAnswer(selected, selectedButton) {
+        if (state.answeredCurrent) return;
+        state.answeredCurrent = true;
+        state.answered++;
+        const question = state.activeSet[state.questionIndex];
+        const right = selected === question.answer;
+        if (right) state.score++;
+        if (state.activeKey !== "final") {
+          state.skillTotals[state.activeKey]++;
+          if (right) state.skillScores[state.activeKey]++;
+        }
+        [...ui.answers.children].forEach((button, index) => {
+          button.disabled = true;
+          if (index === question.answer) button.classList.add("correct");
+        });
+        if (!right) selectedButton.classList.add("wrong");
+        ui.feedback.textContent = right ? (question.feedback || "إجابة ممتازة! كفو يا بطل وادي السير!") : "قريب! الإجابة الصحيحة مبيّنة بالأخضر. تذكّر هذه المعلومة للمهمة القادمة.";
+        ui.feedback.classList.toggle("wrong", !right);
+        ui.next.textContent = state.questionIndex === state.activeSet.length - 1 ? "إنهاء المهمة ←" : "السؤال التالي ←";
+        ui.next.hidden = false;
+        state.keys.clear();
+      }
+
+      function nextQuestion() {
+        if (!state.answeredCurrent) return;
+        if (state.questionIndex < state.activeSet.length - 1) {
+          state.questionIndex++; renderQuestion(); return;
+        }
+        const key = state.activeKey;
+        state.completed.add(key);
+        if (key !== "final") state.seen.add(key);
+        ui.challenge.hidden = true;
+        state.activeKey = null; state.activeSet = null;
+        setProgress();
+        if (key === "final") finishGame();
+        else if (state.completed.size === 3) showToast("كفو يا وحش! أنهيت المحطات الثلاث. منصة التحدي الختامي بانتظارك! 🏆");
+        else showToast(`عاش يا بطل! أنهيت ${stations[key].title}.`);
+      }
+
+      function finishGame() {
+        const percentage = state.answered ? Math.round((state.score / state.answered) * 100) : 0;
+        const passed = percentage > PASS_MARK;
+        const record = {
+          name: state.student.name, section: state.student.section, score: percentage,
+          correct: state.score, total: state.answered, passed,
+          skills: Object.fromEntries(Object.keys(stations).map((key) => [
+            key, { correct: state.skillScores[key], total: state.skillTotals[key] }
+          ])),
+          completedAt: new Date().toISOString()
+        };
+        const records = readRecords();
+        records.push(record);
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(records));
+          state.savedRecord = true;
+        } catch (error) {
+          state.savedRecord = false;
+          console.error("تعذّر حفظ سجل الطالب محلياً:", error);
+          showToast("اكتمل الاختبار، لكن تعذّر حفظ السجل في هذا المتصفح.");
+        }
+        el("certificate-name").textContent = state.student.name;
+        el("certificate-section").textContent = `الشعبة: ${state.student.section}`;
+        el("certificate-score").textContent = `النتيجة: ${percentage.toLocaleString("ar")}٪`;
+        el("certificate-message").textContent = passed
+          ? "اجتزت التحدي الختامي بنجاح، كفو يا وحش! يمكنك طباعة الشهادة أو حفظها بصيغة PDF."
+          : "أكملت المغامرة، عاش يا بطل! تحتاج إلى أكثر من ٧٠٪ لاجتياز التحدي والحصول على شهادة الإنجاز. راجع المهارات وحاول مجدداً.";
+        el("certificate").hidden = !passed;
+        ui.certificate.hidden = false;
+        state.keys.clear();
+      }
+
+      function readRecords() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(SAVE_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed.filter((record) => record && typeof record.name === "string" && Number.isFinite(record.score)) : [];
+        } catch (error) {
+          console.error("تعذّر قراءة سجل الطلاب المحلي:", error);
+          showToast("تعذّر قراءة سجل الطلاب. قد تكون بيانات المتصفح غير صالحة.");
+          return [];
+        }
+      }
+
+      function openReport() {
+        const records = readRecords();
+        ui.reportBody.replaceChildren();
+        ui.reportSummary.textContent = `عدد المحاولات المسجلة في هذا المتصفح: ${records.length.toLocaleString("ar")}.`;
+        if (!records.length) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td"); cell.colSpan = 5; cell.className = "empty";
+          cell.textContent = "لا توجد نتائج محفوظة بعد. ابدأ المغامرة لتظهر نتائج الطلبة هنا.";
+          row.append(cell); ui.reportBody.append(row);
+        } else {
+          records.slice().reverse().forEach((record) => {
+            const row = document.createElement("tr");
+            const values = [
+              record.name, record.section, `${record.score.toLocaleString("ar")}٪`,
+              skillSummary(record),
+              formatDate(record.completedAt)
+            ];
+            values.forEach((value) => { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); });
+            ui.reportBody.append(row);
+          });
+        }
+        ui.report.hidden = false; state.keys.clear();
+      }
+
+      function formatDate(value) {
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "—" : new Intl.DateTimeFormat("ar-JO", { dateStyle: "medium" }).format(date);
+      }
+
+      function skillSummary(record) {
+        const labels = { maintenance: "الصيانة", hardware: "العتاد", software: "النظام" };
+        return Object.keys(labels).map((key) => {
+          const skill = record.skills && record.skills[key];
+          const score = skill && skill.total ? `${skill.correct}/${skill.total}` : "—";
+          return `${labels[key]} ${score}`;
+        }).join(" · ");
+      }
+
+      function exportReport() {
+        const records = readRecords();
+        if (!records.length) { showToast("لا يوجد سجل لتنزيله حتى الآن."); return; }
+        const rows = [["اسم الطالب", "الشعبة", "النتيجة ٪", "الإجابات الصحيحة", "مجموع الأسئلة", "الصيانة", "العتاد", "النظام", "الحالة", "التاريخ"]];
+        records.forEach((record) => rows.push([
+          record.name, record.section, String(record.score), String(record.correct), String(record.total),
+          ...Object.keys(stations).map((key) => {
+            const skill = record.skills && record.skills[key];
+            return skill ? `${skill.correct}/${skill.total}` : "—";
+          }),
+          record.passed ? "مجتاز" : "بحاجة إلى مراجعة", formatDate(record.completedAt)
+        ]));
+        const csv = "\uFEFF" + rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        const link = document.createElement("a"); link.href = url; link.download = "grade8-class-report.csv";
+        document.body.append(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+      }
+
+      function clearReport() {
+        if (!readRecords().length) { showToast("السجل فارغ بالفعل."); return; }
+        if (!window.confirm("هل تريد مسح سجل النتائج المحفوظ في هذا المتصفح؟ لا يمكن التراجع عن ذلك.")) return;
+        try {
+          localStorage.removeItem(SAVE_KEY);
+          showToast("تم مسح السجل المحلي.");
+          openReport();
+        } catch (error) {
+          console.error("تعذّر مسح سجل الطلاب المحلي:", error);
+          showToast("تعذّر مسح السجل؛ تحقق من إعدادات تخزين المتصفح.");
+        }
+      }
+
+      function closeModal(id) { el(id).hidden = true; }
+      function bindEvents() {
+        el("start-form").addEventListener("submit", startGame);
+        ui.next.addEventListener("click", nextQuestion);
+        ui.action.addEventListener("click", beginNearby);
+        document.querySelectorAll("[data-station]").forEach((button) => button.addEventListener("click", () => {
+          const key = button.dataset.station;
+          if (state.completed.has(key)) { showToast("أنجزت هذه المحطة بالفعل، أحسنت!"); return; }
+          if (!state.gameStarted) { showToast("اكتب اسمك أولاً للانطلاق في الجزيرة."); return; }
+          if (key === "final" && state.completed.size < 3) { showToast("أنجز محطات الجزيرة الثلاث أولاً لفتح التحدي الختامي."); return; }
+          if (key === "final") {
+            player.position.set(0, 1.1, 3.8);
+          } else {
+            const [x, , z] = stations[key].position;
+            player.position.set(x, 1.1, z + 2.75);
+          }
+          updateProximity();
+        }));
+        el("teacher-open").addEventListener("click", openReport);
+        el("close-certificate").addEventListener("click", () => closeModal("certificate-modal"));
+        el("restart-game").addEventListener("click", restartGame);
+        el("print-certificate").addEventListener("click", () => window.print());
+        el("print-report").addEventListener("click", () => window.print());
+        el("export-report").addEventListener("click", exportReport);
+        el("clear-report").addEventListener("click", clearReport);
+        document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => closeModal(button.dataset.close)));
+        [ui.challenge, ui.report, ui.certificate].forEach((modal) => modal.addEventListener("click", (event) => {
+          if (event.target === modal) modal.hidden = true;
+        }));
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") [ui.challenge, ui.report, ui.certificate].forEach((modal) => { modal.hidden = true; });
+        });
+      }
+
+      function restartGame() {
+        state.student = null; state.score = 0; state.answered = 0;
+        state.completed.clear(); state.seen.clear();
+        state.skillScores = { maintenance: 0, hardware: 0, software: 0 };
+        state.skillTotals = { maintenance: 0, hardware: 0, software: 0 };
+        state.activeKey = null; state.activeSet = null; state.savedRecord = false;
+        player.position.set(0, 1.1, 6);
+        ui.certificate.hidden = true; ui.hud.hidden = true; ui.nav.hidden = true;
+        ui.intro.hidden = false; ui.headerPlayer.textContent = "مستكشف جديد";
+        el("student-name").value = ""; el("start-error").textContent = "";
+        ui.action.hidden = true; ui.hint.textContent = "استكشف الجزيرة، واقترب من محطة لبدء مهمتها.";
+        setProgress();
+        el("student-name").focus();
+      }
+
+      function boot() {
+        bindEvents();
+        try {
+          makeScene();
+          el("loading").hidden = true;
+        } catch (error) {
+          console.error(error);
+          el("loading").textContent = error.message;
+          el("start-form").querySelector("button").disabled = true;
+          el("start-error").textContent = "تعذّر تشغيل المشهد ثلاثي الأبعاد. أعد تحميل الصفحة بعد التحقق من اتصال الإنترنت.";
+        }
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>
