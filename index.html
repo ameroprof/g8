@@ -104,7 +104,7 @@
     .progress-line { display: flex; justify-content: space-between; margin-bottom: 7px; color: #d7e1dd; font-size: 12px; }
     .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .12); }
     .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint), #d7f39c); transition: width .3s; }
-    .badge-row { display: flex; gap: 7px; margin-top: 13px; }
+    .badge-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 13px; }
     .badge {
       flex: 1;
       padding: 7px 5px;
@@ -421,9 +421,11 @@
     <div class="progress-line"><span>إنجاز المغامرة</span><span id="progress-text">٠٪</span></div>
     <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
     <div class="badge-row">
-      <div id="badge-hardware" class="badge">🖥️ العتاد</div>
-      <div id="badge-maintenance" class="badge">🛠️ الصيانة</div>
-      <div id="badge-software" class="badge">💿 النظام</div>
+      <div id="badge-hardware" class="badge">🖥️ عتاد</div>
+      <div id="badge-maintenance" class="badge">🛠️ صيانة</div>
+      <div id="badge-software" class="badge">💿 نظام</div>
+      <div id="badge-diagnostics" class="badge">🔎 تشخيص</div>
+      <div id="badge-safety" class="badge">🔐 أمان</div>
     </div>
   </aside>
 
@@ -436,6 +438,12 @@
     </button>
     <button class="zone-button" type="button" data-station="software">
       <span class="zone-dot" style="background:#bd9af2"></span><span class="zone-label">مركز النظام</span><span class="zone-status">ابدأ</span>
+    </button>
+    <button class="zone-button" type="button" data-station="diagnostics">
+      <span class="zone-dot" style="background:#8ce5b1"></span><span class="zone-label">مختبر تشخيص الأعطال</span><span class="zone-status">ابدأ</span>
+    </button>
+    <button class="zone-button" type="button" data-station="safety">
+      <span class="zone-dot" style="background:#83b8f2"></span><span class="zone-label">محطة الأمان الرقمي</span><span class="zone-status">ابدأ</span>
     </button>
     <button class="zone-button" type="button" data-station="final">
       <span class="zone-dot" style="background:#f28f83"></span><span class="zone-label">منصة التحدي الختامي</span><span class="zone-status">مغلقة</span>
@@ -452,8 +460,8 @@
   <footer class="bottom-bar">
     <div class="hint">
       <span id="game-hint">استكشف الجزيرة، واقترب من محطة لبدء مهمتها.</span>
-      <span class="desktop-controls">حرّك: <span class="key">W</span> للأمام · <span class="key">S</span> للخلف · <span class="key">A</span><span class="key">D</span> يمين/يسار</span>
-      <span class="mobile-controls"><span class="key">W/↑</span> للأمام · <span class="key">S/↓</span> للخلف</span>
+      <span class="desktop-controls">حرّك: <span class="key">W</span>/<span class="key">↑</span> للأمام · <span class="key">S</span>/<span class="key">↓</span> للخلف · <span class="key">A</span>/<span class="key">←</span> يسار · <span class="key">D</span>/<span class="key">→</span> يمين</span>
+      <span class="mobile-controls"><span class="key">W/↑</span> للأمام · <span class="key">S/↓</span> للخلف · <span class="key">A/←</span> يسار · <span class="key">D/→</span> يمين</span>
       <span class="action-controls"><span class="key">Space</span> قفز · <span class="key">E</span> دخول المحطة</span>
       <button id="nearby-action" class="action-button" type="button" hidden>ابدأ المهمة</button>
     </div>
@@ -463,7 +471,7 @@
     <div class="intro-card">
       <div class="eyebrow">ذكور وادي السير · الأونروا</div>
       <h2 id="intro-title">مغامرة صيانة الحواسيب</h2>
-      <p>جهّز عدّتك وانطلق لاستكشاف الجزيرة. أكمل محطات العتاد والصيانة والنظام، ثم اختبر مهاراتك في التحدي الختامي!</p>
+      <p>جهّز عدّتك وانطلق لاستكشاف الجزيرة. أكمل محطات العتاد والصيانة والنظام وتشخيص الأعطال والأمان الرقمي، ثم اختبر مهاراتك في التحدي الختامي!</p>
       <form id="start-form" class="form-fields">
         <label>اسم الطالب
           <input id="student-name" name="student-name" type="text" autocomplete="name" maxlength="70" placeholder="اكتب اسمك الثلاثي" required>
@@ -543,28 +551,52 @@
       const SAVE_KEY = "grade8-repair-island-records-v1";
       const PASS_MARK = 70;
       const stations = {
-        maintenance: { title: "واحة خطط الصيانة", color: 0xf4bd65, position: [-8, 0, 2], badge: "maintenance" },
-        hardware: { title: "ورشة العتاد", color: 0x78d4cf, position: [7, 0, 1], badge: "hardware" },
-        software: { title: "مركز النظام", color: 0xbd9af2, position: [0, 0, -9], badge: "software" }
+        maintenance: { title: "واحة خطط الصيانة", color: 0xf4bd65, position: [-8, 0, 2], badge: "maintenance", reportLabel: "الصيانة" },
+        hardware: { title: "ورشة العتاد", color: 0x78d4cf, position: [7, 0, 1], badge: "hardware", reportLabel: "العتاد" },
+        software: { title: "مركز النظام", color: 0xbd9af2, position: [0, 0, -9], badge: "software", reportLabel: "النظام" },
+        diagnostics: { title: "مختبر تشخيص الأعطال", color: 0x8ce5b1, position: [8, 0, -8], badge: "diagnostics", reportLabel: "التشخيص" },
+        safety: { title: "محطة الأمان الرقمي", color: 0x83b8f2, position: [-8, 0, -8], badge: "safety", reportLabel: "الأمان الرقمي" }
       };
       const quests = {
         maintenance: [
           { scenario: "يضع فني المختبر جدولاً لتنظيف فتحات التهوية وفحص الأسلاك قبل ظهور أي مشكلة. ما نوع الصيانة؟", options: ["صيانة وقائية", "صيانة علاجية", "صيانة تكيفية"], answer: 0, feedback: "كفو يا وحش! الصيانة الوقائية تتم وفق خطة لتقليل احتمال الأعطال قبل حدوثها." },
           { scenario: "يراقب نظامٌ مؤشرات حرارة القرص وأداءه ليقدّر متى قد يقع عطل. أي نوع من الصيانة يعتمد على متابعة المؤشرات؟", options: ["صيانة تنبؤية", "صيانة علاجية", "صيانة عشوائية"], answer: 0, feedback: "صحيح! الصيانة التنبؤية تستفيد من المراقبة والبيانات لتوقّع الحاجة إلى الصيانة." },
           { scenario: "تعطّل جهاز فعلاً، ففحصه الفني وحدّد السبب ثم أصلح الجزء المتضرر. ما نوع الصيانة؟", options: ["صيانة علاجية", "صيانة وقائية", "صيانة تنبؤية"], answer: 0, feedback: "عاش يا بطل! الصيانة العلاجية تعالج العطل بعد وقوعه." },
-          { scenario: "نُعدّل إعدادات برنامج أو جهاز ليتوافق مع تغيير جديد في بيئة العمل. ما نوع الصيانة الأقرب؟", options: ["صيانة تكيفية", "صيانة علاجية", "صيانة وقائية"], answer: 0, feedback: "ممتاز! الصيانة التكيفية تساعد النظام على مواكبة التغيّرات في بيئته." }
+          { scenario: "نُعدّل إعدادات برنامج أو جهاز ليتوافق مع تغيير جديد في بيئة العمل. ما نوع الصيانة الأقرب؟", options: ["صيانة تكيفية", "صيانة علاجية", "صيانة وقائية"], answer: 0, feedback: "ممتاز! الصيانة التكيفية تساعد النظام على مواكبة التغيّرات في بيئته." },
+          { scenario: "أي سجل يساعد المدرسة على معرفة مواعيد الفحص والتنظيف والإصلاحات السابقة؟", options: ["سجل الصيانة", "سجل خلفيات الشاشة", "قائمة كلمات المرور"], answer: 0, feedback: "يساعد سجل الصيانة على تتبع الأعمال ومواعيدها واكتشاف المشكلات المتكررة." },
+          { scenario: "ما فائدة تنظيف لوحة المفاتيح بانتظام باستخدام الطريقة المناسبة؟", options: ["تقليل الغبار والأوساخ التي قد تؤثر في عملها", "زيادة سرعة الإنترنت", "زيادة سعة ذاكرة RAM"], answer: 0 }
         ],
         hardware: [
           { scenario: "الشاشة سوداء ومؤشر تشغيلها مطفأ. ما أول فحص بسيط وآمن قبل التفكير في استبدالها؟", options: ["التأكد من توصيل كابل الطاقة ومصدر الكهرباء", "فتح الشاشة من الداخل فوراً", "حذف ملفات الجهاز"], answer: 0, feedback: "صحيح! ابدأ بالفحص الأساسي للتوصيلات والطاقة قبل استبدال القطع." },
           { scenario: "قبل فتح صندوق الحاسوب المكتبي لتنظيفه، ما الإجراء الأهم للسلامة؟", options: ["إيقاف التشغيل وفصل مصدر الكهرباء", "رشّ المنظف داخل الجهاز وهو يعمل", "لمس اللوحة الأم للتأكد من حرارتها"], answer: 0, feedback: "أحسنت! افصل الطاقة أولاً، واتبع تعليمات السلامة قبل التعامل مع المكونات." },
           { scenario: "أي قطعة تحتفظ مؤقتاً بالبيانات والبرامج التي يستخدمها الحاسوب أثناء عمله؟", options: ["ذاكرة الوصول العشوائي RAM", "الشاشة", "الفأرة"], answer: 0, feedback: "تمام! تستخدم RAM لتخزين البيانات مؤقتاً أثناء تشغيل البرامج." },
-          { scenario: "يريد فني تقليل خطر الكهرباء الساكنة قبل لمس المكوّنات الداخلية. ما الأداة المناسبة؟", options: ["سوار تفريغ الشحنات الساكنة ESD", "قطعة قماش مبللة", "مفك غير معزول"], answer: 0, feedback: "ممتاز! سوار ESD يساعد على تفريغ الشحنات الساكنة بأمان." }
+          { scenario: "يريد فني تقليل خطر الكهرباء الساكنة قبل لمس المكوّنات الداخلية. ما الأداة المناسبة؟", options: ["سوار تفريغ الشحنات الساكنة ESD", "قطعة قماش مبللة", "مفك غير معزول"], answer: 0, feedback: "ممتاز! سوار ESD يساعد على تفريغ الشحنات الساكنة بأمان." },
+          { scenario: "ما وظيفة اللوحة الأم Motherboard؟", options: ["ربط مكونات الحاسوب وتمكينها من التواصل", "عرض الصور للمستخدم", "تخزين الملفات وحدها"], answer: 0 },
+          { scenario: "أي مكوّن يزوّد أجزاء الحاسوب المكتبي بالطاقة الكهربائية المناسبة؟", options: ["مزوّد الطاقة PSU", "المعالج CPU", "ذاكرة RAM"], answer: 0 }
         ],
         software: [
           { scenario: "توقف برنامج عن الاستجابة لكن بقية الحاسوب ما زالت تعمل. ما الأداة المناسبة لإنهاء البرنامج؟", options: ["إدارة المهام Task Manager", "تغيير دقة الشاشة", "تنظيف لوحة المفاتيح"], answer: 0, feedback: "صحيح! استخدم إدارة المهام لتحديد التطبيق المتوقف وإنهاء مهمته." },
           { scenario: "أصبح الحاسوب بطيئاً عند بدء التشغيل. ما خطوة الفحص المنطقية؟", options: ["مراجعة تطبيقات بدء التشغيل وإيقاف غير الضروري منها", "فصل الشاشة أثناء التشغيل", "حذف نظام التشغيل"], answer: 0, feedback: "رائع! مراجعة تطبيقات بدء التشغيل قد تقلل الحمل عند تشغيل الجهاز." },
           { scenario: "ظهرت مشكلة بعد تثبيت برنامج، وتريد إعادة إعدادات النظام إلى حالة سابقة. ما الأداة المناسبة؟", options: ["استعادة النظام", "إدارة الملفات", "تغيير خلفية الشاشة"], answer: 0, feedback: "أحسنت! يمكن لاستعادة النظام الرجوع إلى نقطة استعادة سابقة عند توفرها." },
-          { scenario: "ما التصرف الآمن عند ظهور شاشة زرقاء أو رسالة خطأ للنظام؟", options: ["تسجيل رمز الخطأ واتباع خطوات التشخيص الموثوقة", "فتح صندوق الطاقة أثناء التشغيل", "تجاهل الرسالة وتكرار فصل الكهرباء"], answer: 0, feedback: "تمام! دوّن رسالة الخطأ واتبع التشخيص خطوة خطوة، ولا تتخذ إجراءً عشوائياً." }
+          { scenario: "ما التصرف الآمن عند ظهور شاشة زرقاء أو رسالة خطأ للنظام؟", options: ["تسجيل رمز الخطأ واتباع خطوات التشخيص الموثوقة", "فتح صندوق الطاقة أثناء التشغيل", "تجاهل الرسالة وتكرار فصل الكهرباء"], answer: 0, feedback: "تمام! دوّن رسالة الخطأ واتبع التشخيص خطوة خطوة، ولا تتخذ إجراءً عشوائياً." },
+          { scenario: "ما الدور الأساسي لنظام التشغيل؟", options: ["إدارة موارد الحاسوب وتشغيل التطبيقات", "تنظيف المكونات الداخلية", "تزويد الجهاز بالكهرباء"], answer: 0 },
+          { scenario: "لماذا نستخدم برنامجاً موثوقاً لمكافحة البرمجيات الضارة ونحدّثه؟", options: ["للمساعدة على اكتشاف التهديدات الجديدة والتعامل معها", "لزيادة حجم الشاشة", "لإيقاف النسخ الاحتياطي"], answer: 0 }
+        ],
+        diagnostics: [
+          { scenario: "الحاسوب لا يعمل إطلاقاً. ما أول فحص آمن ومنطقي؟", options: ["التحقق من كابل الطاقة والمقبس ومفتاح التشغيل", "فتح مزوّد الطاقة", "حذف نظام التشغيل"], answer: 0 },
+          { scenario: "لا يسمع المستخدم صوتاً من الحاسوب. ما الفحص الأول المناسب؟", options: ["التحقق من مستوى الصوت والتأكد من اختيار جهاز الإخراج الصحيح", "استبدال اللوحة الأم مباشرة", "إعادة تهيئة القرص"], answer: 0 },
+          { scenario: "الطابعة لا تطبع رغم أنها تعمل. أي خطوة تشخيصية مناسبة؟", options: ["فحص اتصالها والورق وحالة قائمة الطباعة", "فصل ذاكرة RAM", "تغيير كلمة مرور الجهاز"], answer: 0 },
+          { scenario: "ما الترتيب الأفضل للتعامل مع عطل غير معروف؟", options: ["ملاحظة الأعراض، فحص الأسباب البسيطة، ثم تجربة حل آمن وتقييمه", "تغيير عدة قطع في الوقت نفسه", "حذف الملفات قبل تحديد المشكلة"], answer: 0 },
+          { scenario: "تظهر رسالة خطأ متكررة. ما المعلومات المفيدة لتسجيلها قبل طلب المساعدة؟", options: ["نص الرسالة ووقت ظهورها والخطوات التي سبقتها", "لون غطاء الحاسوب فقط", "اسم آخر ملف فتحته قبل أسبوع"], answer: 0 },
+          { scenario: "انقطع اتصال الجهاز بالشبكة. ما أول ما ينبغي التحقق منه؟", options: ["حالة الاتصال اللاسلكي أو كابل الشبكة وإعدادات الاتصال", "حرارة الشاشة", "كمية الحبر في الطابعة"], answer: 0 }
+        ],
+        safety: [
+          { scenario: "قبل تنظيف الحاسوب، ما الإجراء الأساسي لحماية المستخدم والجهاز؟", options: ["إيقافه وفصل الكهرباء واستخدام مواد تنظيف مناسبة", "رش الماء على الجهاز وهو يعمل", "إدخال أداة معدنية في فتحات التهوية"], answer: 0 },
+          { scenario: "وصلتك رسالة تطلب كلمة مرورك عبر رابط غير معروف. ماذا تفعل؟", options: ["لا تفتح الرابط ولا تشارك كلمة المرور وأبلغ المسؤول", "ترسل كلمة المرور للتأكد", "تعيد توجيه الرسالة إلى الجميع"], answer: 0 },
+          { scenario: "ما الصفة الأفضل لكلمة مرور الحساب؟", options: ["طويلة وفريدة ولا تتم مشاركتها", "اسم الطالب وتاريخ ميلاده", "الكلمة نفسها لكل الحسابات"], answer: 0 },
+          { scenario: "لماذا نُنشئ نسخة احتياطية للملفات المهمة؟", options: ["لاستعادتها إذا فُقدت أو تعطل الجهاز", "لتسريع حركة الفأرة", "لإلغاء الحاجة إلى تحديث النظام"], answer: 0 },
+          { scenario: "كيف نتخلص من جهاز إلكتروني تالف بطريقة مسؤولة؟", options: ["تسليمه إلى جهة جمع أو تدوير إلكترونيات معتمدة", "رميه في الماء", "حرقه في ساحة المدرسة"], answer: 0 },
+          { scenario: "ما التصرف الأفضل عند استخدام جهاز مشترك في المدرسة؟", options: ["تسجيل الخروج من الحساب بعد الانتهاء وعدم حفظ كلمة المرور", "ترك الحساب مفتوحاً للجميع", "مشاركة الملفات الخاصة مع كل المستخدمين"], answer: 0 }
         ]
       };
       const finalQuiz = [
@@ -573,7 +605,13 @@
         { scenario: "ما الفرق العام بين الذاكرة RAM ووحدة التخزين SSD؟", options: ["RAM مؤقتة أثناء العمل، وSSD تخزين دائم للملفات", "كلتاهما شاشة عرض", "SSD تحفظ البيانات المؤقتة فقط أثناء فتح البرنامج"], answer: 0 },
         { scenario: "ما التصرف الأفضل قبل تثبيت تحديث لنظام التشغيل؟", options: ["حفظ العمل واتباع تعليمات التحديث الموثوقة", "إطفاء الجهاز أثناء التحديث", "حذف ملفات النظام عشوائياً"], answer: 0 },
         { scenario: "الفأرة لا تتحرك. ما أول خطوة تشخيصية مناسبة؟", options: ["فحص اتصالها أو بطاريتها وتجربتها على منفذ مناسب", "استبدال المعالج فوراً", "إعادة تثبيت كل البرامج"], answer: 0 },
-        { scenario: "لاحظت رائحة احتراق من جهاز يعمل. ماذا تفعل؟", options: ["إيقافه وفصل الكهرباء بأمان وإبلاغ المسؤول", "متابعة العمل حتى ينطفئ", "فتح مزوّد الطاقة"], answer: 0 }
+        { scenario: "لاحظت رائحة احتراق من جهاز يعمل. ماذا تفعل؟", options: ["إيقافه وفصل الكهرباء بأمان وإبلاغ المسؤول", "متابعة العمل حتى ينطفئ", "فتح مزوّد الطاقة"], answer: 0 },
+        { scenario: "أي مكوّن يربط أجزاء الحاسوب ويسمح بتواصلها؟", options: ["اللوحة الأم", "السماعة", "لوحة اللمس"], answer: 0 },
+        { scenario: "ما أول خطوة مناسبة عند تعطل جهاز طرفي مثل الطابعة؟", options: ["فحص الطاقة والاتصال والرسائل الظاهرة قبل استبدال القطع", "فتح الجهاز أثناء توصيله بالكهرباء", "حذف نظام التشغيل"], answer: 0 },
+        { scenario: "وصلتك رسالة تطلب تسجيل الدخول عبر رابط غير مألوف. ما التصرف الآمن؟", options: ["تجنب الرابط والتحقق من مصدر الرسالة وإبلاغ المسؤول", "إدخال كلمة المرور بسرعة", "إرسال الرسالة إلى زملائك"], answer: 0 },
+        { scenario: "لماذا نحتفظ بنسخة احتياطية من الملفات المهمة؟", options: ["لاستعادة الملفات عند فقدها أو تعطل الجهاز", "لتقليل حجم الشاشة", "لإيقاف التحديثات"], answer: 0 },
+        { scenario: "ما الهدف من نظام التشغيل؟", options: ["إدارة موارد الجهاز وتوفير بيئة لتشغيل التطبيقات", "تبريد المعالج وحده", "تنظيف لوحة المفاتيح"], answer: 0 },
+        { scenario: "ما الذي يساعد على حماية المكوّنات من ضرر الكهرباء الساكنة؟", options: ["اتباع احتياطات ESD واستخدام سوار تفريغ مناسب", "لمس المكوّنات بيد مبللة", "تنظيفها والجهاز موصول بالكهرباء"], answer: 0 }
       ];
 
       const el = (id) => document.getElementById(id);
@@ -592,8 +630,8 @@
         student: null, score: 0, answered: 0,
         completed: new Set(), seen: new Set(), questionIndex: 0,
         activeSet: null, activeKey: null, answeredCurrent: false,
-        skillScores: { maintenance: 0, hardware: 0, software: 0 },
-        skillTotals: { maintenance: 0, hardware: 0, software: 0 },
+        skillScores: { maintenance: 0, hardware: 0, software: 0, diagnostics: 0, safety: 0 },
+        skillTotals: { maintenance: 0, hardware: 0, software: 0, diagnostics: 0, safety: 0 },
         nearby: null, keys: new Set(), cameraYaw: 0, jumpVelocity: 0, lastTime: 0, toastTimer: 0,
         gameStarted: false, savedRecord: false
       };
@@ -609,8 +647,8 @@
       }
 
       function setProgress() {
-        const done = Object.keys(stations).filter((key) => state.completed.has(key)).length;
-        const percent = Math.round((state.completed.size / 4) * 100);
+        const stageCount = Object.keys(stations).length + 1;
+        const percent = Math.round((state.completed.size / stageCount) * 100);
         ui.progressText.textContent = `${percent.toLocaleString("ar")}٪`;
         ui.progressFill.style.width = `${percent}%`;
         Object.entries(stations).forEach(([key, station]) => {
@@ -621,7 +659,7 @@
           if (status) status.textContent = isDone ? "✓ أُنجزت" : "ابدأ";
         });
         const finalStatus = document.querySelector('[data-station="final"] .zone-status');
-        if (finalStatus) finalStatus.textContent = state.completed.has("final") ? "✓ أُنجزت" : state.completed.size === 3 ? "متاح" : "مغلقة";
+        if (finalStatus) finalStatus.textContent = state.completed.has("final") ? "✓ أُنجزت" : state.completed.size === Object.keys(stations).length ? "متاح" : "مغلقة";
       }
 
       function makeScene() {
@@ -658,7 +696,7 @@
         grass.position.y = 1.0; grass.receiveShadow = true; scene.add(grass);
 
         const pathMaterial = new T.MeshStandardMaterial({ color: 0xd8c898, roughness: 1 });
-        const pathPoints = [[-8, 2], [7, 1], [0, -9], [0, 0]];
+        const pathPoints = [[-8, 2], [7, 1], [0, -9], [8, -8], [-8, -8], [0, 0]];
         pathPoints.forEach(([x, z]) => {
           const path = new T.Mesh(new T.CylinderGeometry(.68, .68, .035, 16), pathMaterial);
           path.position.set(x, 1.115, z); path.receiveShadow = true; scene.add(path);
@@ -672,8 +710,8 @@
         for (let i = 0; i < 28; i++) {
           const angle = i * 2.4, radius = 3.8 + (i % 7) * 1.65;
           const x = Math.sin(angle) * radius, z = Math.cos(angle) * radius;
-          if (Math.hypot(x + 8, z - 2) < 4.5 || Math.hypot(x - 7, z - 1) < 4.5 ||
-              Math.hypot(x, z + 9) < 4.5 || Math.hypot(x, z) < 5.2 || Math.hypot(x, z - 6) < 4.5) continue;
+          if (Object.values(stations).some((station) => Math.hypot(x - station.position[0], z - station.position[2]) < 4.5) ||
+              Math.hypot(x, z) < 5.2 || Math.hypot(x, z - 6) < 4.5) continue;
           const trunk = new T.Mesh(new T.CylinderGeometry(.12, .17, .9, 6), new T.MeshStandardMaterial({ color: 0x795a43 }));
           trunk.position.set(x, 1.48, z); trunk.castShadow = true; scene.add(trunk);
           const crown = new T.Mesh(new T.IcosahedronGeometry(.68 + (i % 3) * .13, 1), new T.MeshStandardMaterial({ color: i % 2 ? 0x388d66 : 0x4b9c65, roughness: 1 }));
@@ -859,7 +897,7 @@
           ui.action.hidden = false;
           ui.hint.textContent = `اقتربت من ${stations[nearest].title}. اضغط E للدخول أو استخدم الزر.`;
           ui.action.textContent = "ابدأ المهمة · E";
-        } else if (state.completed.size === 3 && !state.completed.has("final")) {
+        } else if (state.completed.size === Object.keys(stations).length && !state.completed.has("final")) {
           const distance = Math.hypot(player.position.x, player.position.z);
           if (distance < 5.5) {
             state.nearby = "final"; ui.action.hidden = false;
@@ -988,7 +1026,7 @@
         state.activeKey = null; state.activeSet = null;
         setProgress();
         if (key === "final") finishGame();
-        else if (state.completed.size === 3) showToast("كفو يا وحش! أنهيت المحطات الثلاث. منصة التحدي الختامي بانتظارك! 🏆");
+        else if (state.completed.size === Object.keys(stations).length) showToast("كفو يا وحش! أنهيت المحطات الخمس. منصة التحدي الختامي بانتظارك! 🏆");
         else showToast(`عاش يا بطل! أنهيت ${stations[key].title}.`);
       }
 
@@ -1065,18 +1103,17 @@
       }
 
       function skillSummary(record) {
-        const labels = { maintenance: "الصيانة", hardware: "العتاد", software: "النظام" };
-        return Object.keys(labels).map((key) => {
+        return Object.entries(stations).map(([key, station]) => {
           const skill = record.skills && record.skills[key];
           const score = skill && skill.total ? `${skill.correct}/${skill.total}` : "—";
-          return `${labels[key]} ${score}`;
+          return `${station.reportLabel} ${score}`;
         }).join(" · ");
       }
 
       function exportReport() {
         const records = readRecords();
         if (!records.length) { showToast("لا يوجد سجل لتنزيله حتى الآن."); return; }
-        const rows = [["اسم الطالب", "الشعبة", "النتيجة ٪", "الإجابات الصحيحة", "مجموع الأسئلة", "الصيانة", "العتاد", "النظام", "الحالة", "التاريخ"]];
+        const rows = [["اسم الطالب", "الشعبة", "النتيجة ٪", "الإجابات الصحيحة", "مجموع الأسئلة", ...Object.values(stations).map((station) => station.reportLabel), "الحالة", "التاريخ"]];
         records.forEach((record) => rows.push([
           record.name, record.section, String(record.score), String(record.correct), String(record.total),
           ...Object.keys(stations).map((key) => {
@@ -1113,7 +1150,7 @@
           const key = button.dataset.station;
           if (state.completed.has(key)) { showToast("أنجزت هذه المحطة بالفعل، أحسنت!"); return; }
           if (!state.gameStarted) { showToast("اكتب اسمك أولاً للانطلاق في الجزيرة."); return; }
-          if (key === "final" && state.completed.size < 3) { showToast("أنجز محطات الجزيرة الثلاث أولاً لفتح التحدي الختامي."); return; }
+          if (key === "final" && state.completed.size < Object.keys(stations).length) { showToast("أنجز محطات الجزيرة الخمس أولاً لفتح التحدي الختامي."); return; }
           if (key === "final") {
             player.position.set(0, 1.1, 3.8);
           } else {
@@ -1142,8 +1179,8 @@
         state.student = null; state.score = 0; state.answered = 0;
         state.completed.clear(); state.seen.clear();
         state.jumpVelocity = 0;
-        state.skillScores = { maintenance: 0, hardware: 0, software: 0 };
-        state.skillTotals = { maintenance: 0, hardware: 0, software: 0 };
+        state.skillScores = { maintenance: 0, hardware: 0, software: 0, diagnostics: 0, safety: 0 };
+        state.skillTotals = { maintenance: 0, hardware: 0, software: 0, diagnostics: 0, safety: 0 };
         state.activeKey = null; state.activeSet = null; state.savedRecord = false;
         player.position.set(0, 1.1, 6);
         ui.certificate.hidden = true; ui.hud.hidden = true; ui.nav.hidden = true;
