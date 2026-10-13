@@ -202,6 +202,8 @@
       font-weight: 700;
     }
     .action-button { display: none; margin-inline-start: 5px; }
+    .action-controls { color: #d5e4df; font-size: 12px; }
+    .mobile-controls { display: none; }
     .mobile-pad {
       position: absolute;
       z-index: 2;
@@ -368,6 +370,8 @@
       .mobile-pad { display: grid; }
       .hint { max-width: 56%; margin-left: auto; font-size: 11px; line-height: 1.7; }
       .hint .desktop-controls { display: none; }
+      .mobile-controls { display: inline; color: #d5e4df; font-size: 10px; }
+      .action-controls { font-size: 10px; }
       .action-button { display: inline-block; padding: 7px 10px; border: 1px solid rgba(140, 229, 177, .4); border-radius: 9px; background: rgba(8, 19, 30, .84); color: var(--mint); }
       #creator-credit { font-size: 10px; }
     }
@@ -448,7 +452,9 @@
   <footer class="bottom-bar">
     <div class="hint">
       <span id="game-hint">استكشف الجزيرة، واقترب من محطة لبدء مهمتها.</span>
-      <span class="desktop-controls">تحرّك بـ <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></span>
+      <span class="desktop-controls">حرّك: <span class="key">W</span> للخلف · <span class="key">S</span> للأمام · <span class="key">A</span><span class="key">D</span> يمين/يسار</span>
+      <span class="mobile-controls"><span class="key">W/↑</span> للخلف · <span class="key">S/↓</span> للأمام</span>
+      <span class="action-controls"><span class="key">Space</span> قفز · <span class="key">E</span> دخول المحطة</span>
       <button id="nearby-action" class="action-button" type="button" hidden>ابدأ المهمة</button>
     </div>
   </footer>
@@ -588,7 +594,7 @@
         activeSet: null, activeKey: null, answeredCurrent: false,
         skillScores: { maintenance: 0, hardware: 0, software: 0 },
         skillTotals: { maintenance: 0, hardware: 0, software: 0 },
-        nearby: null, keys: new Set(), cameraYaw: 0, lastTime: 0, toastTimer: 0,
+        nearby: null, keys: new Set(), cameraYaw: 0, jumpVelocity: 0, lastTime: 0, toastTimer: 0,
         gameStarted: false, savedRecord: false
       };
       let scene, camera, renderer, player, playerShadow, clock;
@@ -803,8 +809,8 @@
       }
 
       function movePlayer(dt) {
-        const forward = (state.keys.has("KeyW") || state.keys.has("ArrowUp") || state.keys.has("forward") ? 1 : 0) -
-          (state.keys.has("KeyS") || state.keys.has("ArrowDown") || state.keys.has("back") ? 1 : 0);
+        const forward = (state.keys.has("KeyS") || state.keys.has("ArrowDown") || state.keys.has("forward") ? 1 : 0) -
+          (state.keys.has("KeyW") || state.keys.has("ArrowUp") || state.keys.has("back") ? 1 : 0);
         const sideways = (state.keys.has("KeyD") || state.keys.has("ArrowRight") || state.keys.has("right") ? 1 : 0) -
           (state.keys.has("KeyA") || state.keys.has("ArrowLeft") || state.keys.has("left") ? 1 : 0);
         if (forward || sideways) {
@@ -818,12 +824,22 @@
           player.rotation.y = Math.atan2(dx, dz);
           player.children[0].position.y = .88 + Math.sin(performance.now() * .012) * .04;
         } else player.children[0].position.y = .88;
+        if (player.position.y > 1.1 || state.jumpVelocity > 0) {
+          state.jumpVelocity -= 18 * dt;
+          player.position.y += state.jumpVelocity * dt;
+          if (player.position.y <= 1.1) {
+            player.position.y = 1.1;
+            state.jumpVelocity = 0;
+          }
+        }
         const radius = Math.hypot(player.position.x, player.position.z);
         if (radius > worldLimit) {
           player.position.x *= worldLimit / radius;
           player.position.z *= worldLimit / radius;
         }
+        const shadowHeight = Math.max(0, player.position.y - 1.1);
         playerShadow.position.set(player.position.x, 1.135, player.position.z);
+        playerShadow.scale.setScalar(Math.max(.45, 1 - shadowHeight * .13));
         const offset = new window.THREE.Vector3(0, 6.5, 10.5).applyAxisAngle(new window.THREE.Vector3(0, 1, 0), state.cameraYaw);
         const desired = player.position.clone().add(offset);
         camera.position.lerp(desired, .09);
@@ -841,14 +857,14 @@
         if (nearest && nearestDistance < 3.3) {
           state.nearby = nearest;
           ui.action.hidden = false;
-          ui.hint.textContent = `اقتربت من ${stations[nearest].title}. جاهز للمهمة؟`;
-          ui.action.textContent = "ابدأ المهمة";
+          ui.hint.textContent = `اقتربت من ${stations[nearest].title}. اضغط E للدخول أو استخدم الزر.`;
+          ui.action.textContent = "ابدأ المهمة · E";
         } else if (state.completed.size === 3 && !state.completed.has("final")) {
           const distance = Math.hypot(player.position.x, player.position.z);
           if (distance < 5.5) {
             state.nearby = "final"; ui.action.hidden = false;
-            ui.hint.textContent = "أنجزت المحطات! اقتربت من منصة التحدي الختامي.";
-            ui.action.textContent = "ابدأ التحدي";
+            ui.hint.textContent = "أنجزت المحطات! اضغط E لبدء التحدي الختامي.";
+            ui.action.textContent = "ابدأ التحدي · E";
             return;
           }
           state.nearby = null; ui.action.hidden = true;
@@ -862,9 +878,13 @@
 
       function onKeyDown(event) {
         if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) event.preventDefault();
-        if (event.code === "KeyE" || event.key === " ") { if (!ui.action.hidden) beginNearby(); return; }
+        if (!ui.intro.hidden || !ui.challenge.hidden || !ui.report.hidden || !ui.certificate.hidden) return;
+        if (event.code === "KeyE") { if (!ui.action.hidden) beginNearby(); return; }
+        if (event.code === "Space") {
+          if (!event.repeat && state.gameStarted && player && player.position.y <= 1.101) state.jumpVelocity = 7;
+          return;
+        }
         if (event.code === "KeyQ") state.cameraYaw -= .14;
-        if (event.code === "KeyE" && ui.action.hidden) state.cameraYaw += .14;
         state.keys.add(event.code);
       }
       function onKeyUp(event) { state.keys.delete(event.code); }
@@ -1121,6 +1141,7 @@
       function restartGame() {
         state.student = null; state.score = 0; state.answered = 0;
         state.completed.clear(); state.seen.clear();
+        state.jumpVelocity = 0;
         state.skillScores = { maintenance: 0, hardware: 0, software: 0 };
         state.skillTotals = { maintenance: 0, hardware: 0, software: 0 };
         state.activeKey = null; state.activeSet = null; state.savedRecord = false;
